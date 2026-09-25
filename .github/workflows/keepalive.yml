@@ -2,21 +2,28 @@ name: Keepalive Workflow
 
 on:
   schedule:
-    # 每 25 天的凌晨 0 点自动检查并保活一次（UTC时间）
+    # 每 25 天的 0 点自动执行一次（重置 60 天倒计时）
     - cron: '0 0 */25 * *'
-  workflow_dispatch: # 支持手动点击运行测试
+  workflow_dispatch: # 支持网页手动点击测试
 
 jobs:
-  cronjob-based-github-action:
-    name: Keepalive
+  keepalive:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # 必须具备写入权限
-    steps:
-      - uses: actions/checkout@v4
+      contents: write # 必须赋予写入权限
 
-      - name: Keepalive Workflow
-        uses: gautamkrishnar/keepalive-workflow@v2
-        with:
-          # 超过 45 天无提交活动时自动激活保活
-          time_elapsed: 45
+    steps:
+      # 1. 检出代码 (GitHub 官方维护，永不会挂)
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. 原生 Git 提交一条时间戳，刷新活跃状态
+      - name: Refresh Repository Activity
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "github-actions[bot]"
+          mkdir -p .github
+          date -u +"%Y-%m-%d %H:%M:%S UTC" > .github/keepalive.txt
+          git add .github/keepalive.txt
+          git commit -m "chore: keepalive scheduled workflows [skip ci]" || exit 0
+          git push
