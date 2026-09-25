@@ -1,0 +1,22 @@
+name: Keepalive Workflow
+
+on:
+  schedule:
+    # 每 25 天的凌晨 0 点自动检查并保活一次（UTC时间）
+    - cron: '0 0 */25 * *'
+  workflow_dispatch: # 支持手动点击运行测试
+
+jobs:
+  cronjob-based-github-action:
+    name: Keepalive
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # 必须具备写入权限
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Keepalive Workflow
+        uses: gautamkrishnar/keepalive-workflow@v2
+        with:
+          # 超过 45 天无提交活动时自动激活保活
+          time_elapsed: 45
