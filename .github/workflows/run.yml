@@ -4,18 +4,27 @@ on:
   workflow_dispatch:
   push:
   schedule:
-    - cron: 30 16 * * *
+    - cron: '30 16 * * *'
 
 jobs:
   run:
     runs-on: ubuntu-24.04
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 18
-      - run: npm ci
-      - run: npm run main
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run GLaDOS check-in
+        run: npm run main
         env:
           GLADOS: ${{ secrets.GLADOS }}
           NOTIFY: ${{ secrets.NOTIFY }}
